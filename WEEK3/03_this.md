@@ -90,6 +90,10 @@ console.log(d, window.d, this.d);   // Uncaught ReferenceError : c is not
 
 ### 메서드로서 호출할 때 그 메서드 내부에서의 this
 
+함수를 실행하는 방법 - 함수로서 호출하기 vs 메서드로서 호출하기
+
+프로그래밍에서 함수와 메서드 : 미리 정의한 동작을 수행하는 코드 뭉치
+
 ### 함수로서 호출할 때 그 함수 내부에서의 this
 
 ### 콜백 함수 호출 시 그 함수 내부에서의 this
