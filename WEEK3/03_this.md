@@ -289,7 +289,7 @@ this에 별도의 대상을 바인딩하는 방법
 -> 임의의 객체를 this로 지정할 수 있도록 함
 
 ```
-Function prototype.call(thisArg[, arg1[, arg2[, ...]]])
+Function.prototype.call(thisArg[, arg1[, arg2[, ...]]])
 ```
 
 call 메서드의 첫번째 인자를 this로 바인딩하고, 이후의 인자들을 호출할 함수의 매개변수로 함
@@ -317,6 +317,10 @@ obj.method.call({ a : 4 }, 5, 6 );   // 4 5 6
 ```
 
 ### apply 메서드
+
+```
+Function.prototype.apply(thisArg[, arg1[, arg2[, ...]]])
+```
 
 call 메서드와 기능적으로 완전히 동일!
 
@@ -358,14 +362,118 @@ var obj = {
 Array.prototype.push.call(obj, "d");
 console.log(obj);   // { 0: "a", 1: "b", 2: "c", 3: "d", length: 4 }
 
-var arr = Array.prototype.slice.call(obj);
+var arr = Array.prototype.slice.call(obj);  -> slice 메서드를 이용해 객체를 배열로 전환함
 console.log(arr);   // [ "a", "b", "c", "d" ]
 ```
 
+> 객체에는 배열 메서드를 직접 사용할 수 없으나 키가 0 또는 양수인 프로퍼티가 존재하고 length 프로퍼티의 값이 0 또는 양수인 객체(배열의 구조와 유사할 경우)이면 call 또는 apply 메서드를 사용하여 배열 메서드를 차용할 수 있음!
+
+> slice 메서드 : 시작 인덱스 값과 마지막 인덱스 값을 받아 시작 값부터 마지막 값의 앞부분까지의 배열 요소를 추출하는 메서드이며, 매개변수를 아무것도 넘기지 않을 경우 원본 배열의 얕은 복사본을 반환함  
+> 즉, call 메서드를 이용해 원본인 유사배열 객체의 얇은 복사를 수행한 것인데 slice 메서드가 배열 메서드이기 때문에 복사본은 배열로 반환하게 된 것
+
+함수 내부에서 접근할 수 있는 arguments 객체도 유사배열객체이므로 위의 방법을 이용해 배열로 전환 가능  
+querySelectorAll, getElementsByClassName 등의 Node 선택자로 선택한 결과인 NodeList도 마찬가지
+
+```
+function a (){
+    var argv = Array.prototype.slice.call(arguments);
+    argv.forEach(function (argv) {
+        console.log(arg);
+    });
+}
+a(1, 2, 3);
+
+document.body.innerHTML = "<div>a</div><div>b</div><div>c</div>";
+var nodeList = document.querySelectorAll("div");
+var nodeArr = Array.prototype.slice.call(nodeList);
+nodeArr.forEach(function (node){
+    console.log(node);
+});
+```
+
 ### bind 메서드
+
+ES5에서 추가된 기능으로 call과 비슷하지만 즉시 호출되지 않고 넘겨받은 this 및 인수들을 바탕으로 새로운 함수를 반환하기만 하는 메서드  
+새로운 함수를 호출할 때 전달했던 인수들의 뒤에 이어서 등록
+
+```
+Function.prototype.bind(thisArg[, arg1[, arg2[, ...]]])
+```
+
+bind 메서드는 '함수에 this를 미리 적용하기' / '부분 적용 함수 구현하기' 두 가지 목적
+
+```
+var func = function (a, b, c, d) {
+    console.log(this, a, b, c, d);
+};
+func(1, 2, 3, 4);   // Window {...} 1 2 3 4
+
+var bindFunc1 = func.bind({ x : 1 });
+bindFunc1(5, 6, 7, 8);   // { x : 1 } 5 6 7 8
+
+var bindFunc2 = func.bind({ x : 1 }, 4, 5);
+bindFunc2(6, 7);   // { x : 1 } 4 5 6 7
+bindFunc2(8, 9);   // { x : 1 } 4 5 8 9
+```
 
 ### 화살표 함수의 예외사항
 
 ### 별도의 인자로 this를 받는 경우(콜백함수 내에서의 this)
 
 # 03 정리
+
+...
+...
+
+# 추가 공부 내용 (제로초 블로그 참고)
+
+유사배열객체란 무엇인가?
+
+```
+var array = [1,2,3];
+array;  // [1, 2, 3]
+var nodes = document.querySelectorAll("div");   // NodeList [div, div, div, div, div, ...]
+var els = document.body.children;   // HTMLCollection [noscript, link, div, script, ...]
+```
+
+위의 예제에서 array는 배열이고, nodes와 els는 유사배열임  
+둘 다 []로 감싸져있기 때문에 배열과 유사배열의 차이를 알기 어려움
+
+Array.isArray 메서드(배열인지를 판단해주는 메서드)를 사용하여 판단하기  
+('판단할대상 instanceof Array' 으로도 판단 가능)
+
+```
+Array.isArray(array);   // true
+Array.isArray(nodes);   // false
+Array.isArray(els);   // false
+```
+
+직접 배열 리터럴로 선언한 array만 배열이고 그 외에는 []로 감싸져있지만 배열이 아닌 유사배열임
+
+유사배열이 만들어지는 과정 예시
+
+```
+var yoosa = {
+    0: "a",
+    1: "b",
+    2: "c",
+    length: 3
+}
+```
+
+위의 yoosa 객체가 바로 유사배열임 (키가 숫자이고, length 속성을 가짐 -> 배열도 객체라는 성질을 이용한 트릭)  
+-> 배열처럼 yoosa[0], yoosa[1], yoosa.length 등이 가능하다는 점
+
+그렇다면 왜 배열과 유사배열을 구분해야하는가 ?  
+-> 유사배열의 경우 배열의 메서드를 사용할 수 없기 때문!!!  
+-> 그래서 call, apply를 사용하여 배열 메서드를 사용하도록 하는 것
+
+ES6에서는 더 이상 안 보이지만, 존재하는 또 다른 유사배열의 예시
+
+```
+function arrayLike(){
+    console.log(arguments);
+    [].forEach.call(arguments, function(el){ console.log(el) });
+}
+arrayLike(4,5,6);
+```
