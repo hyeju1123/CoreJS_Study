@@ -418,7 +418,72 @@ bindFunc2(8, 9);   // { x : 1 } 4 5 8 9
 
 ### 화살표 함수의 예외사항
 
+ES6에 새롭게 도입된 화살표 함수  
+-> 실행 컨텍스트 생성 시 this를 바인딩하는 과정이 제외됐음  
+-> 즉, 이 함수 내부에는 this가 아예 없음, 접근하고자 하면 스코프체인상 가장 가까운 this에 접근하게 됨
+
+```
+var obj = {
+    outer: function (){
+        console.log(this);
+        var innerFunc = () => {
+            console.log(this);
+        };
+        innerFunc();
+    }
+};
+obj.outer();
+```
+
+화살표 함수를 사용하면 변수로 this를 우회하거나 call/apply/bind를 적용할 필요가 없음!
+
 ### 별도의 인자로 this를 받는 경우(콜백함수 내에서의 this)
+
+콜백함수를 인자로 받는 메서드 중 일부는 추가로 this로 지정할 객체(thisArg)를 인자로 지정할 수 있는 경우가 있음  
+메서드의 thisArg 값을 지정하면 콜백함수 내부에서 this값을 원하는 대로 변경할 수 있음  
+-> 여러 내부 요소에 대해 같은 동작을 반복 수행해야하는 배열 메서드에 많이 포진
+
+배열메서드 : pop, push, unshift, shift, splice, slice, concat, every, some, forEach, map, filter, reduce, reverse, sort, toString, valueOf, join
+
+forEach 예시
+
+```
+var report = {
+    sum: 0,
+    count: 0,
+    add: function (){
+        var args = Array.prototype.slice.call(arguments);
+        args.forEach(function(entry){
+            this.sum += entry;
+            ++this.count;
+        }, this);
+    },
+    average: function (){
+        return this.sum / this.count;
+    }
+};
+report.add(60, 85, 95);
+console.log(report.sum, report.count, report.average());   // 240 3 80
+```
+
+예시 이해하기
+
+- report 객체에는 sum, count 프로퍼티가 있고 add, average 메서드가 있음
+- report.add(60, 85, 95); 에서 60, 85, 95를 인자로 삼아 add 메서드를 호출하면, 세 인자를 배열로 만들어 forEach 메서드가 실행됨
+- 콜백함수 내부에서의 this는 add 메서드에서의 this (report)
+
+> 콜백함수와 함께 thisArg를 인자로 받는 메서드 예시  
+> Array.prototype.forEach(callback[, thisArg])  
+> Array.prototype.map(callback[, thisArg])  
+> Array.prototype.filter(callback[, thisArg])  
+> Array.prototype.some(callback[, thisArg])  
+> Array.prototype.every(callback[, thisArg])  
+> Array.prototype.find(callback[, thisArg])  
+> Array.prototype.findIndex(callback[, thisArg])  
+> Array.prototype.flatMap(callback[, thisArg])  
+> Array.prototype.from(arrayLike[, callback[, thisArg]])  
+> Set.prototype.forEach(callback[, thisArg])  
+> Map.prototype.forEach(callback[, thisArg])
 
 # 03 정리
 
@@ -436,7 +501,6 @@ bindFunc2(8, 9);   // { x : 1 } 4 5 8 9
 - bind 메서드는 this 및 함수에 넘길 인수를 일부 지정해서 새로운 함수를 만듦
 - 요소를 순회하면서 콜백함수를 번복 호출하는 내용의 일부 메서드는 별도의 인자로 this를 받기도 함
 
-...
 ...
 
 # 추가 공부 내용 (제로초 블로그 참고)
