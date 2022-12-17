@@ -105,6 +105,44 @@ console.log(newArr2);
 
 ### 02 - 3 this
 
+콜백 함수도 함수이기 때문에 기본적으로는 this가 전역객체를 참조하지만, 제어권을 넘겨받을 코드에서 콜백 함수에 별도로 this가 될 대상을 지정한 경우에는 그 대상을 참조하게 됨
+
+별도의 this를 지정하는 방식 및 제어권에 대한 이해를 높이기 위한 map 구현 예시
+
+```
+Array.prototype.map = function(callback, thisArg){
+    var mappedArr = [];
+    for(var i = 0; i < this.length; i++){
+        var mappedValue = callback.call(thisArg || window, this[i], i, this);
+        mappedArr[i] = mappedValue;
+    }
+    return mappedArr;
+};
+```
+
+메서드 구현의 핵심 : call/apply 메서드  
+this에는 thisArg 값이 있을 경우 그 값을, 없을 경우 전역 객체를 지정하고  
+첫 번째 인자에는 메서드의 this가 배열을 가리킬 것이므로 배열의 i번째 요소 값을,  
+두 번째 인자에는 i 값을,  
+세 번째 인자에는 배열 자체를 지정해 호출 함  
+그 결과가 변수 mappedValue에 담겨 mappedArr의 i번째 인자에 할당됨
+
+this에 다른 값이 담기는 이유  
+=> 제어권을 넘겨받을 코드에서 call/apply 메서드의 첫 번째 인자에 콜백 함수 내부에서의 this가 될 대상을 명시적으로 바인딩하기 때문
+
+```
+setTimeout(function(){ console.log(this); }, 300);
+
+[1, 2, 3, 4, 5].forEach(function(x){
+    console.log(this);
+});
+
+document.body.innerHTML += `<button id="a>클릭</button>`;
+document.body.querySelector("#a").addEventListener("click", function(e){
+    console.log(this, e);
+});
+```
+
 # 03 콜백 함수는 함수다
 
 # 04 콜백 함수 내부의 this에 다른 값 바인딩하기
