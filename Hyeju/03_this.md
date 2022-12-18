@@ -1,4 +1,12 @@
-## this는 함수가 호출될 때 결정된다. 즉 함수를 호출하는 방식에 따라 this는 달라진다
+# this는 함수가 호출될 때 결정된다. 즉 함수를 호출하는 방식에 따라 this는 달라진다
+|상황  |this  |
+|--|--|
+|1. 전역공간에서  | 전역 객체 |
+|2. 함수 호출 시 | 전역 객체 |
+|3. 메서드 호출 시  | 메서드 호출 주체 |
+|4. callback 호출 시  | 기본적으로는 함수내부에서와 동일 |
+|5. 생성자함수 호출 시  | 인스턴스 |
+
 
 ## 1. 전역공간에서
 - this: window / global 과 같은 전역 객체
@@ -125,7 +133,9 @@ var obj = {
 obj.b();
 ```
 ## 4. callback 호출 시
-- this: 기본적으로는 함수 내부에서와 동일
+- this: 기본적으로는 함수의 this와 같음(전역객체)
+- 제어권을 가진 함수가 콜백의 this를 지정해둔 경우도 있음
+- 콜백의 this가 지정된 상태라도, 개발자가 this를 바인딩해서 콜백을 넘기면 그에 따름
 ### call, apply, bind 함수 배경지식(명시적으로 this를 바인딩하는 법)
 ```
 function a(x, y, z) {
@@ -174,11 +184,64 @@ obj.b(callback);
 
 ```
 var callback = function() {
-	console.dir(this);
+	console.dir(this);  // 전역 객체
 };
 var obj = {
 	a: 1
 };
 setTimeout(callback, 100);
 ```
+=> setTimeout은 this를 별도로 처리하지 않기에 콜백함 수에 내에서 this는 전역객체가 나옴
+
+```
+var callback = function() {
+	console.dir(this);  // obj
+};
+var obj = {
+	a: 1
+};
+setTimeout(callback.bind(obj), 100);
+```
+=> this가 obj로 나오게 하고 싶다면, bind 함수로 명시적으로 바인딩해줘야 함
+```
+document.body.innerHTML += '<div id="a">클릭하세요</div>';
+
+document.getElementById('a').addEventListener(
+	'click',
+	function() {
+		console.dir(this);  // html dom 엘리먼트
+	}
+);
+```
+=> addEventListener라는 함수가 콜백함수를 처리할 때, this는 이벤트가 발생한 그 타겟대상 엘리먼트가 되도록 정의되어 있음
+```
+document.body.innerHTML += '<div id="a">클릭하세요</div>';
+
+document.getElementById('a').addEventListener(
+	'click',
+	function() {
+		console.dir(this);  // obj
+	}.bind(obj)
+);
+```
+=> bind 함수를 이용하면 this를 원하는 객체로 지정해 사용가능
 ## 5. 생성자함수 호출 시
+- this: 생성된 인스턴스 객체 자체가 곧 this
+```
+function Person(n, a) {
+	this.name = n;
+	this.age = a;
+}
+var roy = Person('재남', 30);
+console.log(window.name, window.age);  // 재남 30
+```
+=> new 연산자 없이 Person 함수를 호출하면, roy 변수에는 아무것도 담기지 않게 되고, Person을 함수로서 호출했기 때문에 Person 함수 안의 this는 전역객체를 가리키게 됨. 전역객체에 name, age 프로퍼티 값이 할당이 되므로, console로 찍어보면 해당 값이 출력됨
+```
+function Person(n, a) {
+	this.name = n;
+	this.age = a;
+}
+var roy = new Person('재남', 30);
+console.log(roy);  // Person {name: '재남', age: 30}
+```
+=> new 연산자를 사용하면 Person 함수를 생성자함수로 호출한거니까, 새로 생성될 Person의 인스턴스 객체 자신이 곧 this가 됨. 그 객체 안에 name, age 프로퍼티가 생성되고 값이 할당되어 이 객체가 roy라는 변수에 담기게 됨
