@@ -122,9 +122,7 @@ Array.prototype.map = function(callback, thisArg){
 
 메서드 구현의 핵심 : call/apply 메서드  
 this에는 thisArg 값이 있을 경우 그 값을, 없을 경우 전역 객체를 지정하고  
-첫 번째 인자에는 메서드의 this가 배열을 가리킬 것이므로 배열의 i번째 요소 값을,  
-두 번째 인자에는 i 값을,  
-세 번째 인자에는 배열 자체를 지정해 호출 함  
+첫 번째 인자에는 메서드의 this가 배열을 가리킬 것이므로 배열의 i번째 요소 값을, 두 번째 인자에는 i 값을, 세 번째 인자에는 배열 자체를 지정해 호출 함  
 그 결과가 변수 mappedValue에 담겨 mappedArr의 i번째 인자에 할당됨
 
 this에 다른 값이 담기는 이유  
