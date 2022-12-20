@@ -143,7 +143,7 @@ document.body.querySelector("#a").addEventListener("click", function(e){
 
 # 03 콜백 함수는 함수다
 
-메서드를 콜백 함수로 호출하는 경우
+메서드를 콜백 함수로 호출하는 경우 -> 메서드가 아닌 함수로서 호출됨
 
 ```
 var obj = {
@@ -159,7 +159,69 @@ obj.logValues(1,2);  // { vals: [1, 2, 3], logValues: f } 1 2
 // Window { ... } 6 2
 ```
 
+위 예시코드에서 알아본 차이점  
+메서드로 정의됐을 때 : obj.logValues 처럼 메서드 이름 앞에 점이 있으니 this는 obj를 가리키고, 인자로 넘어온 1, 2가 출력됨  
+콜백 함수로 전달됐을 때 : 메서드를 전달한 것이 아닌 obj.logValues가 가리키는 함수만 전달한 것(직접적인 연관이 없어진 상황) -> forEach에 의해 콜백이 함수로서 호출되고 별도 this를 지정하는 인자를 지정하지 않았으므로 함수 내부 this는 전역객체를 바라봄
+
+어떤 함수의 인자에 객체의 메서드를 전달하더라도 이는 결국 메서드가 아닌 함수라는 것
+
 # 04 콜백 함수 내부의 this에 다른 값 바인딩하기
+
+객체의 메서드를 콜백함수로 전달하면 해당 객체를 this로 바라볼 수 없게됨  
+그런데 만약 콜백 함수 내부에서 this가 해당 객체를 바라보게 하고싶다면 어떻게 해야할까?
+
+콜백 함수 내부의 this에 다른 값을 바인딩하는 방법 1 - 전통적인 방식
+
+```
+var obj1 = {
+    name: "obj1",
+    func: function(){
+        var self = this;
+        return function(){
+            console.log(self, name);
+        };
+    }
+};
+var callback = obj1.func();
+setTimeout(callback, 1000);
+```
+
+obj1.func 메서드 내부에서 self 변수에 this를 담고 익명 함수를 선언함과 동시에 반환했음  
+이후 obj1.func를 호출하면 앞서 선언한 내부함수가 반환되어 callback 변수에 담김  
+이후 callback을 setTimeout 함수에 인자로 전달하면 1초 뒤 callback이 실행되면서 obj1을 출력하는 것
+
+위의 코드에서 func 함수 재활용하는 예
+
+```
+var obj2 = {
+    name: "obj1",
+    func: obj1.func
+};
+var callback2 = obj2.func();
+setTimeout(callback2, 1500);
+
+var obj3 = { name: "obj3" };
+var callback3 = obj1.func.call(obj3);
+setTimeout(callback3, 2000);
+```
+
+callback2에는 obj2의 func를 실행한 결과를 담아 이를 콜백으로 사용했음
+
+=> 그러나 위의 전통적인 방식은 실제로 this를 사용하지 않으며 번거로움 (그럴거면 this를 안쓰겠다)
+
+그래서 보여주는 콜백 함수 내부에서 this를 사용하지 않는 경우
+
+```
+var obj1 = {
+    name: "obj1",
+    func: function(){
+        console.log(obj1.name);
+    }
+};
+setTimeout(obj1.func, 1000);
+```
+
+훨씬 간결하고 직관적이지만, 작성한 함수를 this를 이용해 다양한 상황에서 재활용할 수 없음!!
 
 # 05 콜백 지옥과 비동기 제어
 
