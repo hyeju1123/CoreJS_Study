@@ -225,4 +225,48 @@ setTimeout(obj1.func, 1000);
 
 # 05 콜백 지옥과 비동기 제어
 
-# 06 정리
+콜백 지옥 : 콜백 함수를 익명 함수로 전달하는 과정이 반복되며 코드의 들여쓰기가 감당하기 힘들 정도로 깊어져 가독성이 떨어지고 코드 수정이 어려워 지는 현상
+-> 주로 비동기적 작업(이벤트 처리, 서버 통신)을 수행할 때 이런 형태가 자주 등장함
+
+동기 : 현재 실행중인 코드가 완료된 후에야 다음 코드를 실행하는 방식
+비동기 : 현재 실행 중인 코드의 완료 여부와 무관하게 다음 코드를 실행하는 방식
+
+동기적인 코드와 비동기적인 코드의 차이
+-> CPU의 계산에 의해 즉시 처리가 가능한 대부분의 코드는 동기적인 코드  
+ (비록 계산 식이 복잡해서 CPU가 계산하는 데 시간이 많이 필요하더라도 이는 동기적인 코드)  
+-> 별도의 요청, 실행 대기, 보류 등과 관련된 코드는 비동기적 코드
+
+#콜백지옥 해결 방법 1 - 기명함수로 변환하기  
+-> 코드의 가독성을 높이고 함수 선언과 함수 호출을 구분할 수 있기 때문에 위에서 아래로 순서대로 읽어내려가는 데에 어려움이 없음
+
+#콜백지옥 해결 방법 2 - 비동기 작업의 동기적 표현 (ES6의 Promise 이용하기)  
+-> 비동기 작업이 완료될 때 resolve 또는 reject 를 호출하는 방법으로 비동기 작업의 동기적 표현을 가능하게 함
+(구체적인 설명 : new 연산자와 함께 호출한 Promise의 인자로 넘겨주는 콜백 함수는 호출할 때 바로 실행되지만, 그 내부 resolve 또는 reject 함수를 호출하는 구문이 있을 경우 둘 중 하나가 실행되기 전까지는 then이나 catch 구문으로 넘어가지 않음)
+
+#콜백지옥 해결 방법 3 - 비동기 작업의 동기적 표현 (Generator)
+
+```
+var addCoffee = function(prevName, name) {
+    setTimeout(function () {
+        coffeeMaker.next(prevName ? prevName + ", " + name : name);
+    }, 500);
+};
+
+var coffeeGenerator = function*(){
+    var espresso = yield addCoffee("","에스프레소");
+    console.log(espresso);
+    var americano = yield addCoffee(espresso, "아메리카노");
+    console.log(americano);
+    var mocha = yield addCoffee(americano, "카페모카");
+    console.log(mocha);
+    var latte = yield addCoffee(mocha, "카페라떼");
+    console.log(latte);
+};
+
+var coffeeMaker = coffeeGenerator();
+coffeeMaker.next();
+```
+
+#콜백지옥 해결 방법 4 - 비동기 작업의 동기적 표현 (Promise + async/await)  
+비동기 작업을 수행하고자 하는 함수 앞에 async를 표기하고 함수 내부에서 실질적인 비동기 작업이 필요한 위치마다 await를 표기하는 것만으로 뒤의 내용으로 Promise로 자동 전환함  
+-> 해당 내용이 resolve 된 이후에야 다음으로 진행함 (Promise의 then과 흡사한 효과)
